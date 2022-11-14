@@ -544,9 +544,9 @@ protected void onSaveInstanceState(Bundle saveInstanceState);
 ```kt
 var buffer = ""
 
-override fun onSaveInstanceState(outState: Bundle, outPersistentState: PersistableBundle) {
+override fun onSaveInstanceState(outState: Bundle) {
     outState.putString("buffer", buffer)
-    super.onSaveInstanceState(outState, outPersistentState)
+    super.onSaveInstanceState(outState)
 }
 
 override fun onRestoreInstanceState(savedInstanceState: Bundle) {
