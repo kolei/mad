@@ -580,7 +580,7 @@ override fun onRestoreInstanceState(savedInstanceState: Bundle) {
 - при нажатии кнопки `=`, вы смотрите есть ли буфер, есть ли лямбда-функция и есть ли данные в **TextEdit**. При выполнении всех условий выполняете лямбда-функцию с параметрами взятыми из буфера и EditText
 
 ```kt
-typealias Operation = (double, double) -> double
+typealias Operation = (Double, Double) -> Double
 var operation: Operation? = null
 var buffer: String = "0"
 ...
@@ -598,10 +598,10 @@ fun onFunctionClick(view: View)
 
             // тут остальные проверки
 
-            myEditText.text = operation(
+            myEditText.text = operation?.invoke(
                 buffer.toDouble(),
                 myEditText.text.toString().toDouble()
-            ).toString()
+            ).toString() ?: ""
         }
     }
 }
