@@ -6,6 +6,8 @@ import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.RequestBody.Companion.toRequestBody
 import okio.IOException
 
+typealias HttpCallback = (response: Response?, error: Exception?)->Unit
+
 /*
 В манифест добавьте разрешение на работу с интернетом
 <uses-permission android:name="android.permission.INTERNET" />

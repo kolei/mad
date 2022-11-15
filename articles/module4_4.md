@@ -33,7 +33,7 @@
 
 Чтобы запросить страницу, клиент должен передать строку (задан всего один заголовок):
 
-```
+```txt
 GET /wiki/HTTP HTTP/1.0
 Host: ru.wikipedia.org
 ```
@@ -46,7 +46,7 @@ Host: ru.wikipedia.org
 
 Например, стартовая строка ответа сервера на предыдущий запрос может выглядеть так:
 
-```
+```txt
 HTTP/1.0 200 OK
 ```
 
@@ -56,17 +56,17 @@ HTTP/1.0 200 OK
 
 Сервер может использовать любые методы, не существует обязательных методов для сервера или клиента. Если сервер не распознал указанный клиентом метод, то он должен вернуть статус 501 (Not Implemented). Если серверу метод известен, но он неприменим к конкретному ресурсу, то возвращается сообщение с кодом 405 (Method Not Allowed). В обоих случаях серверу следует включить в сообщение ответа заголовок Allow со списком поддерживаемых методов.
 
-**GET**
+Метод **GET**
 
 Используется для запроса содержимого указанного ресурса.
 
 Клиент может передавать параметры выполнения запроса в URI целевого ресурса после символа «?»:
 
-```
+```txt
 GET /path/resource?param1=value1&param2=value2 HTTP/1.1
 ```
 
-**POST**
+Метод **POST**
 
 Применяется для передачи пользовательских данных заданному ресурсу.
 
@@ -74,7 +74,7 @@ GET /path/resource?param1=value1&param2=value2 HTTP/1.1
 
 Код состояния является частью первой строки ответа сервера. Он представляет собой целое число из трёх цифр. Первая цифра указывает на класс состояния. За кодом ответа обычно следует отделённая пробелом поясняющая фраза на английском языке, которая разъясняет человеку причину именно такого ответа. Примеры:
 
-```
+```txt
 201 Webpage Created
 403 Access allowed only for registered users
 507 Insufficient Storage
@@ -86,7 +86,7 @@ GET /path/resource?param1=value1&param2=value2 HTTP/1.1
 
 Примеры заголовков:
 
-```
+```txt
 Server: Apache/2.2.11 (Win32) PHP/5.3.0
 Last-Modified: Sat, 16 Jan 2010 21:16:42 GMT
 Content-Type: text/plain; charset=windows-1251
@@ -107,7 +107,7 @@ Content-Language: ru
 
 Формат запроса:
 
-```
+```txt
 api.openweathermap.org/data/2.5/weather?lat={lat}&lon={lon}&appid={API key}
 ```
 
@@ -131,7 +131,7 @@ val url = "https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}
 
 Можно описать переменные и запрос в отдельном файле (например, `api.http`) и выполнять запросы прямо из **VSCode**
 
-```
+```txt
 @lat=56.638372
 @lon=47.892991
 @token=d4c9eea0d00fb43230b479793d6aa78f
@@ -191,8 +191,6 @@ GET https://api.openweathermap.org/data/2.5/weather?lat={{lat}}&lon={{lon}}&unit
 }
 ```
 
-
-
 В **Android**-е есть встроенные функции работы с **http**-запросами, но стандартный код для сетевых запросов сложен, излишен и в реальном мире почти не используется. Используются библиотеки. Самые популярные: [OkHttp](https://square.github.io/okhttp/) и Retrofit.
 
 Рассмотрим работу к **OkHttp**
@@ -202,29 +200,221 @@ GET https://api.openweathermap.org/data/2.5/weather?lat={{lat}}&lon={{lon}}&unit
 
 Перед использованием не забудьте добавить в манифест разрешение на работу с интернетом
 
-```
+```xml
 <uses-permission 
     android:name="android.permission.INTERNET" />
 ```
 
-И, если на сайте нет сертификата, атрибут в тег **application** (в манифесте) (в нашем случае обязательно, т.к. прокси-сервер колледжа портит **https** запросы и приходится там где это возможно пользоваться **http**):
+И, если на сайте нет сертификата, атрибут в тег **application** в манифесте (в нашем случае обязательно, т.к. прокси-сервер колледжа портит **https** запросы и приходится там где это возможно пользоваться **http**):
 
-```
+```txt
 android:usesCleartextTraffic="true"
 ```
 
 Ещё в зависимости проекта нужно добавить билиотеку (в файл `build.gradle(:app)` в раздел *dependencies*):
 
-```
+```txt
 implementation 'com.squareup.okhttp3:okhttp:4.10.0'
 ```
 
 >Токен объявите константой в свойствах класса
+>
 >```kt
 >private val appid = "d4c9eea0d00fb43230b479793d6aa78f"
 >```
 
 В примерах из [OkHttp](https://square.github.io/okhttp/) нет обработки исключительных ситуаций, я написал класс обёртку, который принимает на вход строку **url** или готовый **Request** и возвращает callback с ответом или исключением (если связи физически нет или ошибка в ответе). Файл с классом лежит в каталоге [data](../data/Http.kt) этого репозитория.
 
+Ещё, как показала практика, народ путается в коде при большой вложенности, поэтому callback лямбда-функции можно оформлять отдельными переменными, например:
 
+```kt
+private val weatherCallback: HttpCallback = {
+    response, error ->
+    try {
+        // ошибка соединения
+        if (error != null) throw error
 
+        // если ответ получен, но код не 200, то тоже "выбрасываем" исключение
+        if (!response!!.isSuccessful) throw Exception(response.message)
+
+        // тут позже реализуем обработку результата
+    } catch (e: Exception) {
+        // любую ошибку показываем на экране
+        showAlert(e.message ?: "какая-то ошибка")
+    }
+}
+
+private fun showAlert(message: String) {
+    // не забываем, что с визуальными элементами можно работать только из UI-потока
+    runOnUiThread {
+        AlertDialog.Builder(this)
+            .setTitle("Ошибка")
+            .setMessage(message)
+            .setPositiveButton("OK", null)
+            .create()
+            .show()
+    }
+}
+```
+
+Теперь у нас всё готово для выполнения запроса информации о погоде. В конструкторе главного окна извлечём координаты и добавим запрос:
+
+```kt
+val lat = intent.getDoubleExtra("latitude", 0.0)
+val lon = intent.getDoubleExtra("longitude", 0.0)
+Http.call(
+    "http://api.openweathermap.org/data/2.5/weather?lat=$latitude&lon=$longitude&units=metric&appid=$appid&lang=ru",
+    weatherCallback
+)
+```
+
+>Обратите внимание, хотя сервер openweathermap поддерживает **https** запросы, я посылаю **http**.
+
+Что здесь происходит?
+
+**Во-первых**, андроид не разрешает запускать http(s)-запросы из основного потока. Их нужно запускать асинхронно. В **OkHttp** это делает метод **enqueue** (его можно увидеть в реализации метода *call* класса **Http**).
+
+В параметрах метода указывается *callback*-функция в виде лямбда-выражения, в котором возвращается объект ошибки при неуспешном запросе и ответ сервера. Тут нужно учитывать, что в "не успех" заворачиваются как ошибки транспортного уровня (смог **OkHttp** получить ответ сервера или нет), так и ошибки HTTP (коды 4хх и 5хх).
+
+После разбора принятых данных их обычно выводят на экран. Тут надо учитывать что функция обратного вызова всё ещё находится в потоке, а к визуальным элементам можно обращаться только из основного потока. Для работы с визуальными элементами заворачиваем кусок кода в конструкцию:
+
+```kt
+var jsonString: String = response.body!!.string()
+
+runOnUiThread {
+    textView.text = jsonString
+}
+```
+
+Сначала считываем содержимое ответа в переменную (чтение происходит из асинхронного потока), потом полученный ответ показываем на экране в UI потоке
+
+## Разбор JSON
+
+Как уже упоминалось, HTTP, в основном, работает с текстом. Наша переменная *jsonString* содержит JSON-строку. Для извлечения данных нужно преобразовать JSON-строку в JSON-объект.
+
+```kt
+val jsonObject = JSONObject(jsonString)
+```
+
+где, **JSONObject** конструктор, который преобразует строку в объект (т.к. JSON-строка может содержать массив или вообще скалярные данные, то для разбора строки в объект нужно применять соответствующий конструтор).
+
+Для получения данных из JSON-объекта есть *get* методы
+
+* *getJSONArray* - получить массив
+* *getJSONObject* - получение объекта (по индексу из массива или по имени из объекта)
+* *getString* - получить строку
+
+Также есть *getInt*, *getDouble*..., доступные методы будут видны в контекстном меню.
+
+Из полученного объекта (листинг был выше) нам нужны (эти данные вы будете выводить на экран по итогам этой лекции):
+
+* название иконки погоды: *weather[0].icon*
+* описание погоды: *weather[0].description*
+* температура: *main.temp*
+* влажность: *main.humidity*
+* скорость (*wind.speed*) и направление (*wind.deg*) ветра
+* название населенного пункта: *name*
+
+>тут точками обозначен доступ ко вложенным свойствам: *weather[0].icon* -> "из первого элемента массива *weather* прочитать свойство *icon*"
+
+Приведу несколько примеров:
+
+```kt
+val jsonObject = JSONObject(response.body!!.string())
+
+// получение массива
+val wheather = jsonObject.getJSONArray("weather")
+
+// извлечение строки из первого элемента массива  
+val icoName = wheather.getJSONObject(0).getString("icon")
+
+// извлечение числа из объекта
+val temp = jsonObject.getJSONObject("main").getDouble("temp")
+```
+
+## Отображение иконки
+
+Название иконки, обозначающей погоду (солнечно, облачно, дождь...), находится в массиве *weather* - свойство *icon*
+
+```json
+"weather": [
+    {
+        "id": 802,
+        "main": "Clouds",
+        "description": "переменная облачность",
+        "icon": "03n"
+    }
+]
+```
+
+Урл иконки формируется так (описано в АПИ):
+
+```txt
+http://openweathermap.org/img/w/{icoName}.png
+```
+
+тут в фигурных скобках текст, вместо которго должно быть вставлено имя иконки (как оно приходит в JSON)
+
+Для загрузки картинки воспользуемся тем же методом **Http.call**:
+
+>Вызов этого метода нужно вставить в предыдущий callback
+
+```kt
+val jsonObject = JSONObject(response.body!!.string())
+val icoName = jsonObject
+    .getJSONArray("weather")
+    .getJSONObject(0)
+    .getString("icon")
+
+Http.call(
+    "http://openweathermap.org/img/w/$icoName.png",
+    icoCallback
+)
+```
+
+Реализацию *icoCallback* сделаем ниже
+
+Для отображения иконки в разметку окна добавьте элемент **ImageView**
+
+```xml
+<ImageView
+    android:id="@+id/ico"
+    android:layout_width="100dp"
+    android:layout_height="100dp"
+/>
+```
+
+Для программного отображения изображения нужно вызвать метод **setImageBitmap(Bitmap)**
+
+Запрос иконки мы уже сделали, напишем разбор ответа:
+
+```kt
+private val icoCallback: HttpCallback = { response, error ->
+    try {
+        // ошибки обрабатываем всегда
+        if (error != null) throw error
+        if (!response!!.isSuccessful) throw Exception(response.message)
+
+        // формирует изображение из ответа сервера
+        val bitmap = BitmapFactory.decodeStream(response.body!!.byteStream())
+
+        // задаём изображение визуальному элементу
+        runOnUiThread {
+            findViewById<ImageView>(R.id.icoImageView).setImageBitmap(bitmap)
+        }
+    } catch (e: Exception) {
+        // эти ошибки не показываем, картинки вполне может и не быть
+    }
+}
+```
+
+## Задание
+
+Реализовать HTTP-запрос и разбор JSON-ответа. Вывести на экран:
+
+* иконку погоды: *weather[0].icon*
+* описание погоды: *weather[0].description*
+* температуру: *main.temp*
+* влажность: *main.humidity*
+* скорость (*wind.speed*) и направление (*wind.deg*) ветра
+* название населенного пункта: *name*
