@@ -1,5 +1,7 @@
 # Завершение проекта "Погода". Вывод списка городов (ArrayAdapter). Получение результата запуска Intent-a.
 
+**Внимание!!!** в коде этой лекции рассматривается запрос одиночной погоды (weather), но мы уже должны работать со списком (forecast) - поменяйте сами все вызовы и разбор ответа.
+
 ## Выбор города
 
 В приложении "Погода" может возникнуть необходимость получить данные о погоде не по текущим координатам, а по населённому пункту. 
@@ -36,7 +38,7 @@ http://api.openweathermap.org/data/2.5/weather?q={city name}&appid={API key}
 
     Второй параметр метода *startActivityForResult* - идентификатор задачи. Дело в том, что результат будет получен асинхронно в методе класса *onActivityResult*, а у нас в активности может быть несколько вызовов внешних активностей.
 
-3. На форму *CityListActivity* кидаем вертикальный **LinearLayout**, в него **TextView** (для заголовка "Выберите город") и **ListView**. **ListView** присваиваем id *cityList*
+3. На форму *activity_city_list* кидаем вертикальный **LinearLayout**, в него **TextView** (для заголовка "Выберите город") и **ListView**. **ListView** присваиваем id *cityList*
 
     ![](../img/as035.png)
 
@@ -98,12 +100,11 @@ http://api.openweathermap.org/data/2.5/weather?q={city name}&appid={API key}
 
         **Передача информации между активити**
 
-        На первом экране при возврате должно отображаться название выбранного города (и данные о погоде). Для этого первому *activity* требуется выбранное название города. Мы можем передать эту информацию в интенте, используя метод *putExtra()*. *Activity* может получить интент, который запустил его (или вернулся как результат вызова другого *activity*), и извлечь данные из этого интента.
+        На первом экране при возврате должно отображаться название выбранного города (и данные о погоде). Для этого первому *activity* требуется получить выбранное название города. Мы можем передать эту информацию в интенте, используя метод *putExtra()*. *Activity* может получить интент, который запустил его (или вернулся как результат вызова другого *activity*), и извлечь данные из этого интента.
 
 5. В классе главного окна для получения результата выбора реализуем метод *onActivityResult*
 
     ```kt
-    @SuppressLint("MissingSuperCall")
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         if (data == null) {
             return
@@ -111,13 +112,13 @@ http://api.openweathermap.org/data/2.5/weather?q={city name}&appid={API key}
         val name = data.getStringExtra("cityName")
 
         // тут запускаем http-запрос по имени города
-        httpGet(
+        Http.call(
             "https://api.openweathermap.org/data/2.5/weather?q=${name}&appid=${appid}&lang=ru&units=metric", 
-            callback)
+            weatherCallback)
     }
     ```
 
-    >Метод *onActivityResult* гугл объявил устаревшим (deprecated), и в IDE он помечается как ошибка - надо в контекстном меню "More action..." выбрать "Supress: add...". Перед методом будет добавлена аннотация `@SuppressLint("MissingSuperCall")`.
+    >Метод *onActivityResult* гугл объявил устаревшим (deprecated), на это не обращаем внимание.
 
 
 ## Выделение лямбда-выражения в отдельную переменную
@@ -128,13 +129,10 @@ http://api.openweathermap.org/data/2.5/weather?q={city name}&appid={API key}
 
 ```kt
 // weatherCallback - свойство класса, объявляется в теле класса
-private val weatherCallback: (response: Response?, error: Exception?)->Unit = {
+private val weatherCallback: HttpCallback = {
     response, error ->
         try {
-            // если в запросе получено исключение, то "выбрасываем" его
             if (error != null) throw error
-
-            // если ответ получен, но код не 200, то тоже "выбрасываем" исключение
             if (!response!!.isSuccessful) throw Exception(response.message)
 
             // начинаем обработку ответа    
@@ -148,34 +146,24 @@ private val weatherCallback: (response: Response?, error: Exception?)->Unit = {
                 textView.text = json.getString("name")
             }
 
-            httpGet("https://openweathermap.org/img/w/${icoName}.png")
+            Http.call("https://openweathermap.org/img/w/${icoName}.png")
             {response, error ->
                 try {
-                    // если в запросе получено исключение, то "выбрасываем" его
                     if (error != null) throw error
-
-                    // если ответ получен, но код не 200, то тоже "выбрасываем" исключение
                     if (!response!!.isSuccessful) throw Exception(response.message)
+
+                    val bitmap = BitmapFactory
+                        .decodeStream(
+                            response.body!!.byteStream()
+                        )
 
                     runOnUiThread {
                         ico.setImageBitmap(
-                            BitmapFactory
-                                .decodeStream(
-                                    response.body!!.byteStream()
-                                )
+                            bitmap      
                         )
                     }
 
                 } catch (e: Exception) {
-                    // любую ошибку показываем на экране
-                    runOnUiThread {
-                        AlertDialog.Builder(this)
-                            .setTitle("Ошибка")
-                            .setMessage(e.message)
-                            .setPositiveButton("OK", null)
-                            .create()
-                            .show()
-                    }
                 }
             }
         } catch (e: Exception) {
@@ -195,7 +183,8 @@ private val weatherCallback: (response: Response?, error: Exception?)->Unit = {
 ...
 
 // при запросе погоды используем переменную, объявленную выше
-httpGet(
+Http.call(
     "https://api.openweathermap.org/data/2.5/weather?lat=56.638372&lon=47.892991&appid=${appid}&lang=ru&units=metric", 
     weatherCallback)
 ```
+
