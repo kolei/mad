@@ -91,17 +91,19 @@ class WeatherAdapter(
             itemClickListener?.invoke(values[position])
         }
 
-        HTTP.getImage("https://openweathermap.org/img/w/${values[position].weatherIcon}.png") { bitmap, error ->
-            if (bitmap != null) {
-                activity.runOnUiThread {
-                    try {
-                        holder.iconImageView.setImageBitmap(bitmap)
-                    } catch (e: Exception) {
+        Http.call("http://openweathermap.org/img/w/${values[position].weatherIcon}.png") {response, error ->
+            try {
+                if (error != null) throw error
+                if (!response!!.isSuccessful) throw Exception(response.message)
 
-                    }
+                var bitmap = BitmapFactory.decodeStream(response.body!!.byteStream())
+                activity.runOnUiThread {
+                    holder.iconImageView.setImageBitmap(bitmap)
                 }
-            } else
-                Log.d("KEILOG", error)
+            } catch (e: Exception) {
+                // по картинкам ошибки не показываем
+                Log.d("KEILOG", e.message)
+            }
         }
     }
 
