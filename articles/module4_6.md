@@ -177,7 +177,6 @@ private val weatherCallback: HttpCallback = {
                     .show()
             }
         }
-    }
 }
 
 ...
