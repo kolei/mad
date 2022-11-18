@@ -1,0 +1,216 @@
+openapi: '3.0.2'
+info:
+  title: API для тестового проекта проката автомобилей
+  version: '1.0'
+  description: |
+    API для мобильного приложения "Каршеринг".
+
+    Перечень ошибок неполный, возможно получение от сервера незадокументированных ошибок.
+    
+    Для передачи токена необходимо использовать Header: **Authorization: Bearer {token}**
+    
+    Требования к телефону: телефон должен соответствовать паттерну **7ХХХХХХХХХХ**, т.е. 11 цифр без пробелов с первой цифрой "7".
+    
+    **BASE URL**: http://carsharing.kolei.ru
+    
+    **BASE URL** Для изображений и аватаров: http://carsharing.kolei.ru/images
+
+servers:
+  - url: http://carsharing.kolei.ru
+tags:
+  - name: auth
+    description: Регистрация и авторизация
+  - name: user
+    description: Операции с профилем
+  - name: images  
+    description: Операции с изображениями
+paths:
+  /auth/register:
+    post:
+      tags:
+        - auth
+      summary: Регистрация нового пользователя в системе
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                phone:
+                  type: string
+                  description: Телефон пользователя. телефон должен соответствовать паттерну **7ХХХХХХХХХХ**, т.е. 11 цифр без пробелов с первой цифрой "7".
+                  example: 79270001122
+                password:
+                  type: string
+                  description: Пароль
+                  example: qwerty
+                firstName:
+                  type: string
+                  description: Имя пользователя
+                  example: Евгений
+                lastName:
+                  type: string
+                  description: Фамилия пользователя
+                  example: Колесников
+              required:
+                - phone
+                - password
+                - firstName
+                - lastName
+      responses:
+        '200':
+          description: OK
+        '400':
+          description: Проблемы при регистрации
+  /auth/login:
+    post:
+      tags:
+        - auth
+      summary: Аутентификация в системе
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                phone:
+                  type: string
+                  description: телефон пользователя
+                  example: 79270001122
+                password:
+                  type: string
+                  description: Пароль
+                  example: qwerty
+              required:
+                - phone
+                - password
+      responses:
+        '200':
+          description: Успешная аутентификация
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '400':
+          description: Проблема аутентификации
+  /user:
+    get:
+      tags: 
+        - user
+      summary: Получить информацию о пользователе
+      description: Необходимо передать header параметр авторизации типа Bearer
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Данные пользователя
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '401':
+          description: Неавторизированный доступ
+  /user/avatar:
+    post:
+      tags:
+        - user
+      summary: Загрузка фотографии
+      description: |
+        Данный запрос принимает только изображения формата .jpg/.jpeg. 
+        
+        Пустые изображения и невалидные изображения не разрешены.
+
+        Данные для авторизации (токен) нужно передавать в теле запроса
+
+      requestBody:
+        required: true
+        content: 
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                token:
+                  type: string
+                  format: string
+                file:
+                  type: string
+                  format: binary
+            encoding:
+              file:
+                contentType: image/jpg, image/jpeg
+      responses:
+        '200':
+          description: Данные пользователя
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '401':
+          description: Неавторизированный доступ
+  /images/{imageName}:
+    get:
+      tags:
+        - images
+      summary: Получение картинки
+      parameters:
+        - in: path
+          name: imageName
+          schema:
+            type: string
+          required: true
+          description: Название картинки (с расширением), полученное при запросе списка фильмов
+      responses:
+        '200':
+          description: Файл картинки в формате .jpg
+          content:
+            image/jpg:
+              schema:
+                type: string
+                format: binary
+        '404':
+          description: Картинка не найдена на сервере
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+  schemas:
+    User:
+      type: object
+      properties:
+        userId:
+          type: integer
+          example: 27
+        firstName:
+          type: string
+          example: Евгений
+        lastName:
+          type: string
+          example: Евгений 
+        phone:
+          type: string
+          example: 79270001122 
+        valid: 
+          type: boolean
+          example: false
+          description: Профиль активен (загружены документы и нет долгов)
+        avatar:
+          type: string
+          example: 79270001122_avatar.jpg
+          description: Название загруженного файла аватарки (фотографии)
+        prava:
+          type: string
+          example: 79270001122_prava.jpg
+          description: Название загруженного фото водительских прав
+        passport:
+          type: string
+          example: 79270001122_passport.jpg
+          description: Название загруженного фото паспорта
+      required:
+        - userId
+        - firstName
+        - lastName
+        - phone
+        - valid
