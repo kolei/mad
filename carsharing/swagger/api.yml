@@ -112,7 +112,7 @@ paths:
                 $ref: '#/components/schemas/User'
         '401':
           description: Неавторизированный доступ
-  /user/avatar:
+  /user/photo:
     post:
       tags:
         - user
@@ -137,6 +137,8 @@ paths:
                 file:
                   type: string
                   format: binary
+                  description: |
+                    В параметрах этого поля указать название файла: avatar.jpg, prava.jpg, passport.jpg
             encoding:
               file:
                 contentType: image/jpg, image/jpeg

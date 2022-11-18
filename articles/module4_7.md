@@ -360,7 +360,8 @@ override fun onActivityResult(requestCode: Int, resultCode: Int, intent: Intent?
 
                 sendFile(
                     bitmap2InputStream(thumbnailBitmap),
-                    "prava.jpg")
+                    "avatar.jpg"    // название фиксировано, описано в swagger-e
+                )
             }
         }
     }
@@ -448,7 +449,7 @@ private fun sendFile(
             .build()
 
         val request = Request.Builder()
-            .url("http://carsharing.kolei.ru/user/avatar")
+            .url("http://carsharing.kolei.ru/user/photo")
             .post(requestBody)
             .build()
 

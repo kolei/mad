@@ -208,8 +208,8 @@ app.get('/user', cors(), (req,res)=>{
   res.end()
 })
 
-app.options('/user/avatar', cors())
-app.post('/user/avatar', cors(), (req, res) => {
+app.options('/user/photo', cors())
+app.post('/user/photo', cors(), (req, res) => {
   try {
     // console.log(req.files)
 
@@ -222,7 +222,7 @@ app.post('/user/avatar', cors(), (req, res) => {
     const { file } = req.files
     if (!file) throw new Error('No file in request')
 
-    const fileName = user.phone+'_avatar.jpg'
+    const fileName = user.phone+'_'+file.name
     file.mv(__dirname + '/images/' + fileName)
     res.json(userModel(user))
   } catch (error) {
