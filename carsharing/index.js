@@ -3,7 +3,6 @@
 const express = require('express')
 const fileUpload = require('express-fileupload')
 var cors = require('cors')
-const md5 = require('md5')
 const fs = require('fs')
 
 //добавляю к консольному выводу дату и время
@@ -34,8 +33,6 @@ app.use((req, res, next)=>{
 })
 
 const registeredUsers = []
-const cars = [
-]
 
 function findUserByPhone(phone) {
   for (let i = 0; i < registeredUsers.length; i++) {
@@ -225,6 +222,31 @@ app.post('/user/photo', cors(), (req, res) => {
     const fileName = user.phone+'_'+file.name
     file.mv(__dirname + '/images/' + fileName)
     res.json(userModel(user))
+  } catch (error) {
+    res.statusMessage = error.message
+    res.status(400)
+  }
+  res.end()
+})
+
+const cars = [
+  {lat:56.639053,lon:47.893739,model:'Лада Гранта',
+   number:'A100AA12',tarif:8.99,km_left:600,kreslo:true,
+   kpp:'manual',photo:'granta.webp'},
+  {lat:56.638792,lon:47.889641,model:'Nissan Note',
+   number:'B200BB12',tarif:9.99,km_left:400,kreslo:false,
+   kpp:'variator',photo:'note.jpg'},
+  {lat:56.640389,lon:47.896267,model:'Shkoda Rapid',
+   number:'C300CC12',tarif:11,  km_left:400,kreslo:false,
+   kpp:'automat',photo:'rapid.png'}
+]
+
+app.options('/cars', cors())
+app.get('/cars', cors(), (req, res) => {
+  try {
+    checkAuth(req)
+    // TODO выбирать по расстоянию
+    res.json(cars)
   } catch (error) {
     res.statusMessage = error.message
     res.status(400)

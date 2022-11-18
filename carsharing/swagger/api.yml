@@ -24,6 +24,8 @@ tags:
     description: Операции с профилем
   - name: images  
     description: Операции с изображениями
+  - name: cars
+    description: Операции с автомобилями
 paths:
   /auth/register:
     post:
@@ -151,6 +153,25 @@ paths:
                 $ref: '#/components/schemas/User'
         '401':
           description: Неавторизированный доступ
+  /cars:
+    get:
+      tags: 
+        - cars
+      summary: Получить информацию об автомобилях
+      description: Необходимо передать header параметр авторизации типа Bearer
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Список автомобиля
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Car'
+        '401':
+          description: Неавторизированный доступ
   /images/{imageName}:
     get:
       tags:
@@ -179,6 +200,44 @@ components:
       type: http
       scheme: bearer
   schemas:
+    Car:
+      type: object
+      properties:
+        lat:
+          type: number
+          example: 56.639053
+          description: Широта
+        lon:
+          type: number
+          example: 47.893739
+          description: Долгота
+        model:
+          type: string
+          example: Лада Гранта
+        number:
+          type: string
+          example: A100AA12
+          description: Гос.номер
+        tarif:
+          type: number
+          example: 8.99
+          description: Стоимость минуты проезда
+        km_left:
+          type: integer
+          example: 600
+          description: Запас хода
+        kreslo:
+          type: boolean
+          example: true
+          description: Есть детское автокресло
+        kpp:
+          type: string
+          example: manual
+          enum: ['manual','variator','automat']
+          description: Тип коробки передач
+        photo:
+          type: string
+          description: Фото автомобиля
     User:
       type: object
       properties:

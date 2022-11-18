@@ -1,5 +1,4 @@
-// тут не забыть установить свой пакет
-package ru.yotc.baza
+// package тут не забыть установить свой пакет
 
 import okhttp3.*
 import okhttp3.MediaType.Companion.toMediaTypeOrNull

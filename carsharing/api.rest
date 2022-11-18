@@ -1,0 +1,7 @@
+GET http://carsharing.kolei.ru/cars
+Authorization: Bearer 467347
+
+### 
+
+GET http://carsharing.kolei.ru/user
+Authorization: Bearer 467347
