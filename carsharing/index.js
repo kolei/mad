@@ -2,8 +2,10 @@
 
 const express = require('express')
 const fileUpload = require('express-fileupload')
+const request = require('request-promise')
 var cors = require('cors')
 const fs = require('fs')
+const { GOOGLE_API_KEY } = require('./google_key')
 
 //добавляю к консольному выводу дату и время
 function console_log(fmt, ...aparams){
@@ -252,6 +254,49 @@ app.get('/cars', cors(), (req, res) => {
     res.status(400)
   }
   res.end()
+})
+
+app.options('/directions', cors())
+app.get('/directions', cors(), (req, res) => {
+  try {
+    checkAuth(req)
+
+    let url = ''
+
+    // все входящие параметры, кроме токена, передаем дальше
+    Object.keys(req.query).forEach((key) => {
+      if(url=="") url = "https://maps.googleapis.com/maps/api/directions/json?"
+      else url += '&'
+      url+=key+'='+req.query[key]
+    })
+
+    url += `&key=${GOOGLE_API_KEY}`
+
+    console_log('Directions redirect: %s', url)
+
+    // http-запрос
+    request({
+        method: 'GET',
+        uri: url,
+        json: true
+    }).then((response) => {
+        // Запрос был успешным, используйте объект ответа как хотите
+        console_log('get directions google result: ', JSON.stringify(response) )
+        res.json( response )
+        res.end()
+    }).catch((err) => {
+        // Произошло что-то плохое, обработка ошибки
+        console_log('get directions google error: %s', err.message )
+        res.statusMessage = err.message
+        res.status(400)
+        res.end()
+    })
+  } catch (error) {
+    console_log('get directions request error: %s', error.message)
+    res.statusMessage = err.message
+    res.status(400)
+    res.end()
+  }
 })
 
 app.listen(3020, '0.0.0.0', ()=>{

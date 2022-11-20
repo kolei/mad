@@ -618,7 +618,7 @@ private fun sendFile(
     Основано на [этой](https://startandroid.ru/ru/uroki/vse-uroki-spiskom/307-urok-140-google-maps-svoi-obekty-na-karte.html) статье
 
 
-    >Получение списка автомобилей я не расписываю, тут ничего нового. Единственно - их запрашивать имеет смысл не в конструторе, а в методе *onMapReady* (т.к. карта может и не открыться)
+    >Получение списка автомобилей я не расписываю, тут ничего нового. Единственно - их запрашивать имеет смысл не в конструкторе, а в методе *onMapReady* (т.к. карта может и не открыться)
 
     При получении списка автомобилей из АПИ добавляем их на карту (иконку автомобиля надо положить в `res/drawable`):
 
@@ -755,8 +755,8 @@ private fun sendFile(
         ```kt
         // класс должен реализовывать интерфейс GoogleMap.InfoWindowAdapter
         class CustomInfoWindowAdapter(
-            val mContext: Context, 
-            val carList: ArrayList<Car>) : GoogleMap.InfoWindowAdapter
+            mContext: Context, 
+            private val carList: ArrayList<Car>) : GoogleMap.InfoWindowAdapter
         {
             // получаем указатель на файл разметки marker_popup
             var mWindow: View = LayoutInflater
@@ -815,3 +815,7 @@ private fun sendFile(
         Получается что-то такое:
 
         ![](../img/mad_18.png)
+
+## Расчёт маршрута
+
+https://developers.google.com/maps/documentation/directions/overview#DirectionsRequests

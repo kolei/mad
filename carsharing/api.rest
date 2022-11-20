@@ -4,4 +4,9 @@ Authorization: Bearer 467347
 ### 
 
 GET http://carsharing.kolei.ru/user
-Authorization: Bearer 467347
+Authorization: Bearer 535588
+
+###
+
+GET http://carsharing.kolei.ru/directions?origin=55.55,33.33&destination=56.55,32.33&language=ru&mode=walking
+Authorization: Bearer 535588
